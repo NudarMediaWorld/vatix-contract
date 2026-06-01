@@ -58,16 +58,18 @@ pub enum ContractError {
     /// Ensure sufficient collateral is deposited before attempting trades.
     InsufficientCollateral = 10,
 
-    /// Withdrawal failed: user has no collateral deposited in this market.
+    /// No collateral available to withdraw.
     ///
-    /// The user must deposit collateral before attempting to withdraw.
-    WithdrawZeroBalance = 11,
+    /// The user has not deposited any collateral in this market or all collateral is locked.
+    /// Deposit collateral before attempting to withdraw.
+    NoCollateralToWithdraw = 11,
 
-    /// Withdrawal failed: requested amount exceeds available unlocked collateral.
+    /// Withdrawal amount exceeds unlocked collateral.
     ///
-    /// Available collateral = total deposited - collateral locked by YES/NO shares.
-    /// Reduce the withdrawal amount or close positions to free up locked collateral.
-    WithdrawAmountExceedsAvailable = 12,
+    /// Requested amount is greater than available collateral.
+    /// Available = total deposited - collateral locked by positions.
+    /// Reduce withdrawal amount or close positions to unlock more collateral.
+    WithdrawalExceedsUnlockedCollateral = 12,
 
     /// Settlement was attempted on a position that has already been paid out.
     ///
@@ -157,8 +159,8 @@ mod tests {
         assert_eq!(ContractError::MarketExpired as u32, 4);
         assert_eq!(ContractError::MarketNotActive as u32, 5);
         assert_eq!(ContractError::InsufficientCollateral as u32, 10);
-        assert_eq!(ContractError::WithdrawZeroBalance as u32, 11);
-        assert_eq!(ContractError::WithdrawAmountExceedsAvailable as u32, 12);
+        assert_eq!(ContractError::NoCollateralToWithdraw as u32, 11);
+        assert_eq!(ContractError::WithdrawalExceedsUnlockedCollateral as u32, 12);
         assert_eq!(ContractError::PositionAlreadySettled as u32, 13);
         assert_eq!(ContractError::NoPositionFound as u32, 14);
         assert_eq!(ContractError::InvalidShareAmount as u32, 15);
