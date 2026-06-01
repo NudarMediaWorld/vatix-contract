@@ -33,8 +33,8 @@ const MARKET_PRICE_BPS: i128 = 5_000;
 /// # Errors
 /// - `MarketNotFound`: The market does not exist
 /// - `MarketNotActive`: The market is resolved or canceled
-/// - `WithdrawZeroBalance`: User has no collateral deposited in this market
-/// - `WithdrawAmountExceedsAvailable`: `amount` exceeds unlocked collateral
+/// - `NoCollateralToWithdraw`: User has no collateral deposited in this market
+/// - `WithdrawalExceedsUnlockedCollateral`: `amount` exceeds unlocked collateral
 /// - `InvalidQuantity`: `amount` is zero or negative
 /// - `ArithmeticOverflow`: Subtracting `amount` would overflow
 ///
@@ -75,7 +75,7 @@ pub fn withdraw_unused_collateral(
 
     if position.total_deposited == 0 {
         emit_withdraw_edge_case(&env, &user, market_id, amount);
-        return Err(ContractError::WithdrawZeroBalance);
+        return Err(ContractError::NoCollateralToWithdraw);
     }
 
     // TODO(#85): fee deduction should be applied here before computing available collateral
@@ -89,7 +89,7 @@ pub fn withdraw_unused_collateral(
         .max(0);
 
     if amount > available {
-        return Err(ContractError::WithdrawAmountExceedsAvailable);
+        return Err(ContractError::WithdrawalExceedsUnlockedCollateral);
     }
 
     position.total_deposited = position
@@ -248,7 +248,7 @@ mod tests {
             withdraw_unused_collateral(env.clone(), user.clone(), market_id, 60)
         });
 
-        assert_eq!(result, Err(ContractError::WithdrawAmountExceedsAvailable));
+        assert_eq!(result, Err(ContractError::WithdrawalExceedsUnlockedCollateral));
     }
 
     #[test]
@@ -280,7 +280,7 @@ mod tests {
             withdraw_unused_collateral(env.clone(), user.clone(), market_id, 1)
         });
 
-        assert_eq!(result, Err(ContractError::WithdrawZeroBalance));
+        assert_eq!(result, Err(ContractError::NoCollateralToWithdraw));
     }
 
     #[test]
@@ -303,7 +303,7 @@ mod tests {
             withdraw_unused_collateral(env.clone(), user.clone(), market_id, 1)
         });
 
-        assert_eq!(result, Err(ContractError::WithdrawZeroBalance));
+        assert_eq!(result, Err(ContractError::NoCollateralToWithdraw));
     }
 
     #[test]
@@ -333,11 +333,11 @@ mod tests {
 
         env.mock_all_auths();
 
-        // Withdraw 41 > 40 available -> WithdrawAmountExceedsAvailable
+        // Withdraw 41 > 40 available -> WithdrawalExceedsUnlockedCollateral
         let result = env.as_contract(&contract_id, || {
             withdraw_unused_collateral(env.clone(), user.clone(), market_id, 41)
         });
-        assert_eq!(result, Err(ContractError::WithdrawAmountExceedsAvailable));
+        assert_eq!(result, Err(ContractError::WithdrawalExceedsUnlockedCollateral));
     }
 
 
@@ -370,7 +370,7 @@ mod tests {
             withdraw_unused_collateral(env.clone(), user.clone(), market_id, 100)
         });
 
-        assert_eq!(result, Err(ContractError::WithdrawZeroBalance));
+        assert_eq!(result, Err(ContractError::NoCollateralToWithdraw));
     }
 }
 
