@@ -58,20 +58,31 @@ pub enum ContractError {
     /// Ensure sufficient collateral is deposited before attempting trades.
     InsufficientCollateral = 10,
 
+    /// Withdrawal failed: user has no collateral deposited in this market.
+    ///
+    /// The user must deposit collateral before attempting to withdraw.
+    WithdrawZeroBalance = 11,
+
+    /// Withdrawal failed: requested amount exceeds available unlocked collateral.
+    ///
+    /// Available collateral = total deposited - collateral locked by YES/NO shares.
+    /// Reduce the withdrawal amount or close positions to free up locked collateral.
+    WithdrawAmountExceedsAvailable = 12,
+
     /// Settlement was attempted on a position that has already been paid out.
     ///
     /// Each position can only be settled once.
-    PositionAlreadySettled = 11,
+    PositionAlreadySettled = 13,
 
     /// No position exists for this user in this market.
     ///
     /// The user must have an open position to perform this operation.
-    NoPositionFound = 12,
+    NoPositionFound = 14,
 
     /// Share amount is invalid (e.g., negative or zero when positive required).
     ///
     /// Share amounts must be non-negative, and at least one side must be positive.
-    InvalidShareAmount = 13,
+    InvalidShareAmount = 15,
 
     // ========== Oracle Errors (20-29) ==========
     /// Oracle signature verification failed.
@@ -146,9 +157,11 @@ mod tests {
         assert_eq!(ContractError::MarketExpired as u32, 4);
         assert_eq!(ContractError::MarketNotActive as u32, 5);
         assert_eq!(ContractError::InsufficientCollateral as u32, 10);
-        assert_eq!(ContractError::PositionAlreadySettled as u32, 11);
-        assert_eq!(ContractError::NoPositionFound as u32, 12);
-        assert_eq!(ContractError::InvalidShareAmount as u32, 13);
+        assert_eq!(ContractError::WithdrawZeroBalance as u32, 11);
+        assert_eq!(ContractError::WithdrawAmountExceedsAvailable as u32, 12);
+        assert_eq!(ContractError::PositionAlreadySettled as u32, 13);
+        assert_eq!(ContractError::NoPositionFound as u32, 14);
+        assert_eq!(ContractError::InvalidShareAmount as u32, 15);
         assert_eq!(ContractError::InvalidSignature as u32, 20);
         assert_eq!(ContractError::UnauthorizedOracle as u32, 21);
         assert_eq!(ContractError::InvalidOutcome as u32, 22);
